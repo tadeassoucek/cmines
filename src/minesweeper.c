@@ -37,7 +37,7 @@ void alloc_field();
 /** Free the allocated tiles. */
 void free_field();
 /** Put mines in the minefield. */
-void populate_field(uint16_t mine_count);
+void populate_field(uint16_t mine_count, Tile *exception);
 /** Print the minefield. */
 void print_field(bool unmask);
 /**
@@ -58,13 +58,18 @@ void start(uint16_t fw, uint16_t fh, uint16_t mine_count) {
   field_height = fh;
 
   alloc_field();
-  populate_field(mine_count);
+  bool populate_pending = true;
 
   for (;;) {
     print_field(false);
+
     uint16_t x, y;
     if (!handle_input(&x, &y))
       break;
+    else if (populate_pending) {
+      populate_field(mine_count, get_tile(x, y));
+      populate_pending = false;
+    }
 
     if (unmask(x, y)) {
       printf("YOU LOST!\n");
@@ -90,23 +95,24 @@ void free_field() {
   free(field);
 }
 
-void populate_field(uint16_t mine_count) {
+void populate_field(uint16_t mine_count, Tile *exception) {
   srand(time(NULL));
 
   for (uint16_t i = 0; i < mine_count; i++) {
     uint16_t x, y;
+    Tile *tile;
     for (;;) {
       x = rand() % field_width;
       y = rand() % field_height;
+      tile = get_tile(x, y);
 
-      if (get_tile(x, y)->neighboring_mines != -1)
+      if (tile->neighboring_mines != -1 && tile != exception)
         break;
     }
 
-    Tile *tile = get_tile(x, y);
     tile->neighboring_mines = -1;
-    printf("Placed mine at (%d,%d)\n", x, y);
 
+    // AAAAAARGH
     for (uint16_t ny = MAX(y - 1, 0); ny < MIN(y + 2, field_height); ny++)
       for (uint16_t nx = MAX(x - 1, 0); nx < MIN(x + 2, field_width); nx++) {
         Tile *neighbor = get_tile(nx, ny);
