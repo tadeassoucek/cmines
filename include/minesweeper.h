@@ -8,4 +8,4 @@ typedef struct {
   int8_t neighboring_mines;
 } Tile;
 
-void start(uint16_t fw, uint16_t fh, uint16_t mine_count);
+void start(uint8_t fw, uint8_t fh, uint8_t mine_count);

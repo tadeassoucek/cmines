@@ -2,4 +2,4 @@
 
 build:
 	[[ -e bin ]] || mkdir bin
-	gcc -o bin/minesweeper src/*.c -Iinclude -lm
+	gcc -o bin/cmines src/*.c -Iinclude -lm -Wall -pedantic
